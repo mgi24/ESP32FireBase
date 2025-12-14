@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ESP32 Timer UV</title>
+</head>
+<body>
+  <div class="container">
+    <h2>ESP32 Timer UV</h2>
+
+    <!-- UV Status Switch -->
+    <div class="control-group">
+      <label>UV Lamp</label>
+      <label class="switch">
+        <input type="checkbox" id="statusSwitch">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <!-- Door Status Indicator -->
+    <div class="control-group">
+      <label>Door Status</label>
+      <div class="indicator-container">
+        <div class="indicator" id="doorIndicator"></div>
+        <span id="doorText">Closed</span>
+      </div>
+    </div>
+
+    <!-- Timer Controls -->
+    <div class="timer-section">
+      <h3>Timer Setting</h3>
+      <div class="timer-controls">
+        <div class="timer-group">
+          <label>Minutes</label>
+          <div class="counter">
+            <button class="btn" id="minMinus">−</button>
+            <span class="value" id="minutesValue">0</span>
+            <button class="btn" id="minPlus">+</button>
+          </div>
+        </div>
+        <div class="timer-group">
+          <label>Seconds</label>
+          <div class="counter">
+            <button class="btn" id="secMinus">−</button>
+            <span class="value" id="secondsValue">0</span>
+            <button class="btn" id="secPlus">+</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<style>
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: #1a1a2e;
+  color: #eaeaea;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.container {
+  background-color: #16213e;
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  max-width: 400px;
+  width: 100%;
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 30px;
+  color: #e94560;
+}
+
+h3 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #0f3460;
+  background: #e94560;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.control-group {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 15px;
+  background-color: #0f3460;
+  border-radius: 10px;
+}
+
+.control-group label {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* Switch Styles */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 28px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: #4a4a6a;
+  transition: .4s;
+  border-radius: 28px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 22px;
+  width: 22px;
+  left: 3px;
+  bottom: 3px;
+  background-color: #eaeaea;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: #e94560;
+}
+
+input:checked + .slider:before {
+  transform: translateX(22px);
+}
+
+/* Door Indicator */
+.indicator-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.indicator {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: #4a4a6a;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+}
+
+.indicator.on {
+  background-color: #4ade80;
+  box-shadow: 0 0 15px #4ade80, 0 0 30px #4ade80;
+}
+
+.indicator.off {
+  background-color: #ef4444;
+  box-shadow: 0 0 15px #ef4444, 0 0 30px #ef4444;
+}
+
+#doorText {
+  font-size: 14px;
+  color: #a0a0a0;
+}
+
+/* Timer Section */
+.timer-section {
+  margin-top: 20px;
+  padding: 20px;
+  background-color: #0f3460;
+  border-radius: 10px;
+}
+
+.timer-controls {
+  display: flex;
+  justify-content: space-around;
+  gap: 20px;
+}
+
+.timer-group {
+  text-align: center;
+}
+
+.timer-group label {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 14px;
+  color: #a0a0a0;
+}
+
+.counter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 8px;
+  background-color: #e94560;
+  color: white;
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn:hover {
+  background-color: #ff6b6b;
+  transform: scale(1.05);
+}
+
+.btn:active {
+  transform: scale(0.95);
+}
+
+.value {
+  font-size: 28px;
+  font-weight: bold;
+  min-width: 50px;
+  text-align: center;
+  color: #eaeaea;
+}
+</style>
+
+</body>
+
+<script type="module">
+  // Import modul Firebase
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+  // PASTE DARI CONFIG FIRWBASE
+const firebaseConfig = {
+  apiKey: "",
+  authDomain: "",
+  databaseURL: "",
+  projectId: "",
+  storageBucket: "",
+  messagingSenderId: "",
+  appId: ""
+};
+
+  // Inisialisasi Firebase
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const statusRef = ref(db, "status");
+  const doorRef = ref(db, "door");
+  const minutesRef = ref(db, "minutes");
+  const secondsRef = ref(db, "seconds");
+
+  // Local state
+  let minutes = 0;
+  let seconds = 0;
+  const MAX_VALUE = 60;
+
+  // SUBSCRIBE – status switch
+  onValue(statusRef, (snapshot) => {
+    const val = snapshot.val();
+    document.getElementById("statusSwitch").checked = !!val;
+  });
+
+  // SUBSCRIBE – door status
+  onValue(doorRef, (snapshot) => {
+    const val = snapshot.val();
+    const indicator = document.getElementById("doorIndicator");
+    const doorText = document.getElementById("doorText");
+    
+    if (val) {
+      indicator.className = "indicator on";
+      doorText.textContent = "Open";
+    } else {
+      indicator.className = "indicator off";
+      doorText.textContent = "Closed";
+    }
+  });
+
+  // SUBSCRIBE – minutes
+  onValue(minutesRef, (snapshot) => {
+    const val = snapshot.val();
+    minutes = val !== null ? Math.min(Math.max(0, val), MAX_VALUE) : 0;
+    document.getElementById("minutesValue").textContent = minutes;
+  });
+
+  // SUBSCRIBE – seconds
+  onValue(secondsRef, (snapshot) => {
+    const val = snapshot.val();
+    seconds = val !== null ? Math.min(Math.max(0, val), MAX_VALUE) : 0;
+    document.getElementById("secondsValue").textContent = seconds;
+  });
+
+  // Toggle switch event
+  document.getElementById("statusSwitch").addEventListener("change", (e) => {
+    set(statusRef, e.target.checked);
+  });
+
+  // Minutes controls
+  document.getElementById("minPlus").addEventListener("click", () => {
+    if (minutes < MAX_VALUE) {
+      minutes++;
+      set(minutesRef, minutes);
+    }
+  });
+
+  document.getElementById("minMinus").addEventListener("click", () => {
+    if (minutes > 0) {
+      minutes--;
+      set(minutesRef, minutes);
+    }
+  });
+
+  // Seconds controls
+  document.getElementById("secPlus").addEventListener("click", () => {
+    if (seconds < MAX_VALUE) {
+      seconds++;
+      set(secondsRef, seconds);
+    }
+  });
+
+  document.getElementById("secMinus").addEventListener("click", () => {
+    if (seconds > 0) {
+      seconds--;
+      set(secondsRef, seconds);
+    }
+  });
+</script>
+</html>
